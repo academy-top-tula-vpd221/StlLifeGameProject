@@ -1,6 +1,7 @@
 ﻿#include <iostream>
 #include "Console.h"
 #include "GameLife.h"
+#include <thread>
 
 int main()
 {
@@ -10,12 +11,17 @@ int main()
 
 	GameLife game(console);
 	game.SetColony();
-	console.Clear();
-	game.PrintColony();
-	cin >> ch;
-	game.Step();
-	console.Clear();
-	game.PrintColony();
-	cin >> ch;
+	KeyCode key;
+	while (true)
+	{
+		if (_kbhit() && (KeyCode)_getch() == KeyCode::Esc)
+			break;
+		game.Step();
+		console.Clear();
+		game.PrintColony();
+		this_thread::sleep_for(1000ms);
+	}
+	
+	
 	//game.Wait();
 }

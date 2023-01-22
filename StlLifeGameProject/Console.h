@@ -3,6 +3,17 @@
 #include <string>
 #include <Windows.h>
 
+enum KeyCode
+{
+	ArrowUp = 72,
+	ArrowRight = 77,
+	ArrowDown = 80,
+	ArrowLeft = 75,
+	Esc = 27,
+	Space = 32,
+	Enter = 13,
+};
+
 class Console
 {
 	std::wstring title;
@@ -17,19 +28,22 @@ public:
 		SetConsoleTitle((LPCWSTR)title.c_str());
 	}
 
-	void WritePosition(int row, int col, std::string str)
+	void CursorPosition(int row, int col)
 	{
 		currentPosition.X = col;
 		currentPosition.Y = row;
 		SetConsoleCursorPosition(id, currentPosition);
+	}
+
+	void WritePosition(int row, int col, std::string str)
+	{
+		CursorPosition(row, col);
 		std::cout << str;
 	}
 
 	void WritePosition(int row, int col, char symbol)
 	{
-		currentPosition.X = col;
-		currentPosition.Y = row;
-		SetConsoleCursorPosition(id, currentPosition);
+		CursorPosition(row, col);
 		std::cout << symbol;
 	}
 

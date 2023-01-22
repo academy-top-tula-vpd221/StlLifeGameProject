@@ -2,6 +2,7 @@
 #include <vector>
 #include "Cell.h"
 #include "Console.h"
+#include <conio.h>
 #include <algorithm>
 
 using namespace std;
@@ -18,6 +19,61 @@ public:
 
 	void SetColony()
 	{
+		int row = 0;
+		int col = 0;
+		console.CursorPosition(row, col);
+		KeyCode key;
+		bool isExit = false;
+		vector<Cell>::iterator it;
+		while (true)
+		{
+			if (_kbhit())
+			{
+				key = (KeyCode)_getch();
+				switch (key)
+				{
+				case ArrowUp:
+					if (row > 0)
+						row--;
+					break;
+				case ArrowRight:
+					col++;
+					break;
+				case ArrowDown:
+					row++;
+					break;
+				case ArrowLeft:
+					if (col > 0)
+						col--;
+					break;
+				case Esc:
+					isExit = true;
+					break;
+				case Space:
+					Cell candidat = Cell(row, col, CellState::Alive);
+					it = isColony(candidat);
+					if (it == colony.end())
+						colony.push_back(candidat);
+					else
+						colony.erase(it);
+					console.Clear();
+					PrintColony();
+					break;
+					/*case Enter:
+						break;
+					default:
+						break;*/
+				}
+				console.CursorPosition(row, col * 2);
+			}
+				
+			if (isExit)
+				break;
+			
+		}
+
+
+		/*
 		do
 		{
 			cout << "input cell? <y/n> ";
@@ -32,6 +88,7 @@ public:
 			cin >> col;
 			colony.push_back(Cell(row, col, CellState::Alive));
 		} while (1);
+		*/
 	}
 
 	void PrintColony()
@@ -39,19 +96,18 @@ public:
 		cout << "\n";
 		for (auto cell : colony)
 		{
-			console.WritePosition(cell.Row(), cell.Col(), (char)178);
+			console.WritePosition(cell.Row(), cell.Col()*2, string(2, (char)178));
 		}
 	}
 
-	bool isColony(Cell cell)
+	vector<Cell>::iterator isColony(Cell cell)
 	{
 		auto it = find_if(colony.begin(), colony.end(),
 			[&cell](Cell item) {
 				return (item.Row() == cell.Row()) 
-							&& (item.Col() == cell.Col())
-							&& (item.State() != CellState::Born);
+					&& (item.Col() == cell.Col());
 			});
-		return it != colony.end();
+		return it;
 	}
 
 	bool isColony(int row, int col)
@@ -79,30 +135,34 @@ public:
 				cell->State() = CellState::Dead;
 				//cell.SetState(CellState::Dead);
 				//
-		for (auto cell = colony.begin(); cell != colony.end(); cell++)
+		for (int i = 0; i < colony.size(); i++)
 		{
 			for (Position diff : Diff)
 			{
-				Cell candidat(cell->Row() + diff.row, cell->Col() + diff.col, CellState::Born);
-				if (!isColony(candidat))
+				Cell candidat(colony[i].Row() + diff.row, colony[i].Col() + diff.col, CellState::Born);
+				if (isColony(candidat) == colony.end())
 				{
 					for (Position diffCand : Diff)
 					{
-						if (isColony(candidat.Row() + diffCand.row, 
-									 candidat.Col() + diffCand.col))
+						Cell tempCell = Cell(candidat.Row() + diffCand.row, candidat.Col() + diffCand.col, CellState::Born);
+						auto it = isColony(tempCell);
+						if (it != colony.end() && it->State() != CellState::Born)
 							candidat.Neighbors()++;
 					}
-					if (candidat.Neighbors() == 3)
+					if (candidat.Neighbors() == 3 && isColony(candidat) == colony.end())
 						colony.push_back(candidat);
 				}
 			}
 		}
-		for (auto it = colony.begin(); it != colony.end(); it++)
+		for (int i = 0; i < colony.size();)
 		{
-			if (it->State() == CellState::Dead)
-				colony.erase(it);
+			if (colony[i].State() == CellState::Dead)
+				colony.erase(colony.begin() + i);
 			else
-				it->State() = CellState::Alive;
+			{
+				colony[i].State() = CellState::Alive;
+				i++;
+			}
 			if (colony.size() == 0) break;
 		}
 			
